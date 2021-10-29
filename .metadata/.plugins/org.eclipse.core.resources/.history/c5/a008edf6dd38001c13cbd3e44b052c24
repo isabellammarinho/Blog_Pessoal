@@ -1,0 +1,5 @@
+package org.br.generation.blogpessoal.repository;
+
+public interface PostagemRepository {
+
+}
