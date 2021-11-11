@@ -16,93 +16,33 @@ import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/**
- * A Annotation @Entity indica que a classe é uma entidade, ou seja,
- * ele será utilizada para gerar uma tabela no Banco de Dados.
- * 
- * A Annotation @Table indica o nome da tabela no Banco de dados.
- * Caso ela não seja declarada, o Banco criará a tabela com o mesmo
- * nome da classe.
- */
 @Entity
-@Table(name = "tb_postagens") 
+@Table(name = "tb_postagens")
 public class Postagem {
 
-	/**
-	 * A Annotation @ID inidica que o atributo é a chave primária da tabela
-	 * 
-	 * A Annotation @GeneratedValue indica que a chavae primária será do tipo
-	 * auto-incremento.
-	 * 
-	 * O parâmetro strategy indica como será gerada a chave. 
-	 * 
-	 * GenerationType.IDENTITY indica que será uma sequência numérica iniciando
-	 * em 1. 
-	 * 
-	 * Não confundir o auto-incremento do Banco de Dados que inicia em 1 com o
-	 * indice de um Array (Vetor ou Matriz) que inicia em 0.
-	 */
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY) 
-	private long id; 
-
-	/**
-	 * A Annotation @NotNull indica que um atributo não pode ser nulo
-	 * 
-	 * O parâmtero message inidica a mensagem que será exibida caso o
-	 * atributo seja nulo
-	 * 
-	 * Não confundir nulo com branco (você não obriga que o atributo 
-	 * seja preenchido, podendo ficar em branco). 
-	 * 
-	 * Para evitar que o atributo fique em branco utilize a Annotation @NotBlank
-	 * 
-	 * A Annotation @Size tem a função de definir o tamanho minimo e máximo de
-	 * caracteres de um atributo.
-	 * 
-	 *                            ***IMPORTANTE*** 
-	 * 
-	 * Para utilizar estas annotations, não se esqueça de
-	 * inserir a dependência Validation na criação do projeto ou insira
-	 * diretamente no arquivo pom.xml
-	 */
-	@NotNull(message = "O atributo título é Obrigatório!") 
-	@Size(min = 5, max = 100, message = "O atributo título deve conter no mínimo 05 e no máximo 100 caracteres")
-	private String titulo; 
-
-	@NotNull(message = "O atributo texto é Obrigatório!")
-	@Size(min = 10, max = 1000, message = "O atributo texto deve conter no mínimo 10 e no máximo 500 caracteres")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private long id;
+	
+	@NotNull(message = "O atributo título é obrigatório!")
+	@Size(min = 5, max = 100, message = "O atributo título deve ter no mínimo 5 e no máximo 100 caracteres")
+	private String titulo;
+	
+	@NotNull(message = "O atributo texto é obrigatório!")
+	@Size(min = 5, max = 1000, message = "O atributo textoo deve ter no mínimo 5 e no máximo 1000 caracteres")
 	private String texto;
-
-	/**
-	 * A Annotation @Temporal: Indica se o atributo receberá uma data ou um Timestamp (Data e hora do sistema)
-	 * 
-	 * System.currentTimeMillis(): insere os milisegundos na hora
-	 * 
-	 */
+	
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date data = new java.sql.Date(System.currentTimeMillis());
-
-	/**
-	 *  Annotation @ManyToOne: Annotation (Anotação), que indica que a Classe Postagem terá um relacionamento
-	 *  do tipo Many To One (Muitos para Um) com a Classe Tema
-	 *  
-	 *  @JsonIgnoreProperties("postagem"): Annotation (Anotação), que desabilita a recursividade
-	 *  infinita durante a exibição dos dados no formato JSON
-	 *  
-	 *  private Tema tema;: Objeto do tipo Tema que atuará como a "chave estrangeira" da Classe
-	 *  Postagem na relação com a Classe Tema, além de exibir o tema da postagem
-	 */
 
 	@ManyToOne
 	@JsonIgnoreProperties("postagem")
 	private Tema tema;
-
-	/**
-	 * 
-	 * Métodos Get e Set
-	 * 
-	 */	
+	
+	@ManyToOne
+	@JsonIgnoreProperties("postagem")
+	private Usuario usuario;
+	
 	public long getId() {
 		return id;
 	}
@@ -136,11 +76,19 @@ public class Postagem {
 	}
 
 	public Tema getTema() {
-		return this.tema;
+		return tema;
 	}
 
 	public void setTema(Tema tema) {
 		this.tema = tema;
+	}
+
+	public Usuario getUsuario() {
+		return usuario;
+	}
+
+	public void setUsuario(Usuario usuario) {
+		this.usuario = usuario;
 	}
 	
 }

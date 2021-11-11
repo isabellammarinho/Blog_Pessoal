@@ -1,7 +1,8 @@
 package org.br.generation.blogpessoal.controller;
 
-	
 import java.util.List;
+
+import javax.validation.Valid;
 
 import org.br.generation.blogpessoal.model.Tema;
 import org.br.generation.blogpessoal.repository.TemaRepository;
@@ -35,8 +36,8 @@ public class TemaController {
 	@GetMapping("/{id}")
 	public ResponseEntity<Tema> getById(@PathVariable long id) {
 		return temaRepository.findById(id)
-			.map(resp -> ResponseEntity.ok(resp))
-			.orElse(ResponseEntity.notFound().build());
+		.map(resp -> ResponseEntity.ok(resp))
+		.orElse(ResponseEntity.notFound().build());
 	}
 
 	@GetMapping("/descricao/{descricao}")
@@ -45,19 +46,25 @@ public class TemaController {
 	}
 
 	@PostMapping
-	public ResponseEntity<Tema> postTema(@RequestBody Tema tema) {
+	public ResponseEntity<Tema> postTema(@Valid @RequestBody Tema tema) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(temaRepository.save(tema));
 	}
 
 	@PutMapping
-	public ResponseEntity<Tema> putTema(@RequestBody Tema tema) {
-		return ResponseEntity.status(HttpStatus.OK).body(temaRepository.save(tema));
-
+	public ResponseEntity<Tema> putTema(@Valid @RequestBody Tema tema) {
+		return temaRepository.findById(tema.getId())
+			.map(resp -> ResponseEntity.status(HttpStatus.OK).body(temaRepository.save(tema)))
+			.orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
 	}
 
 	@DeleteMapping("/{id}")
-	public void deleteTema(@PathVariable long id) {
-		temaRepository.deleteById(id);
+	public ResponseEntity<?> deleteTema(@PathVariable long id) {
+		return temaRepository.findById(id)
+			.map(resposta -> {
+				temaRepository.deleteById(id);
+				return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+			})
+			.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 	}
-}
 
+}
