@@ -8,8 +8,10 @@ import org.br.generation.blogpessoal.model.Usuario;
 import org.br.generation.blogpessoal.model.UsuarioLogin;
 import org.br.generation.blogpessoal.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class UsuarioService {
@@ -32,19 +34,34 @@ public class UsuarioService {
 
 		if (usuarioRepository.findById(usuario.getId()).isPresent()) {
 			
-			Optional<Usuario> buscaUsuario = usuarioRepository.findByUsuario(usuario.getUsuario());
+			/**
+			 * Checa se o usuário (Não o Id) já existe antes de atualizar
+			 */
 
-			if (buscaUsuario.isPresent()) {				
-				if (buscaUsuario.get().getId() != usuario.getId())
-					return Optional.empty();
-			}
+			Optional<Usuario> buscaUsuario = usuarioRepository.findByUsuario(usuario.getUsuario());
 			
+			if( buscaUsuario.isPresent() ){
+
+				/**
+				 * Checa se o usuário (email) pertence ao mesmo usuário ou se pertence
+				 * a outro usuário através do Id.
+				 * 
+				 * Caso o usuário seja encontrado na atualização é preciso ter certeza
+				 * que ele não esteja cadastrado em outro usuário.
+				 */
+
+				if(buscaUsuario.get().getId() != usuario.getId())
+					throw new ResponseStatusException(
+						HttpStatus.BAD_REQUEST, "O Usuário já existe!", null);
+			}
+	
 			usuario.setSenha(criptografarSenha(usuario.getSenha()));
 
 			return Optional.of(usuarioRepository.save(usuario));
 		} 
 			
 		return Optional.empty();
+
 	}	
 
 	public Optional<UsuarioLogin> autenticarUsuario(Optional<UsuarioLogin> usuarioLogin) {
@@ -54,10 +71,12 @@ public class UsuarioService {
 		if (usuario.isPresent()) {
 			if (compararSenhas(usuarioLogin.get().getSenha(), usuario.get().getSenha())) {
 
+				String token = gerarBasicToken(usuarioLogin.get().getUsuario(), usuarioLogin.get().getSenha());
+
 				usuarioLogin.get().setId(usuario.get().getId());				
 				usuarioLogin.get().setNome(usuario.get().getNome());
 				usuarioLogin.get().setSenha(usuario.get().getSenha());
-				usuarioLogin.get().setToken(gerarBasicToken(usuarioLogin.get().getUsuario(), usuarioLogin.get().getSenha()));
+				usuarioLogin.get().setToken(token);
 
 				return usuarioLogin;
 
@@ -84,10 +103,10 @@ public class UsuarioService {
 
 	}
 
-	private String gerarBasicToken(String email, String password) {
-		
-		String tokenBase = email + ":" + password;
-		byte[] tokenBase64 = Base64.encodeBase64(tokenBase.getBytes(Charset.forName("US-ASCII")));
+	private String gerarBasicToken(String usuario, String senha) {
+
+		String token = usuario + ":" + senha;
+		byte[] tokenBase64 = Base64.encodeBase64(token.getBytes(Charset.forName("US-ASCII")));
 		return "Basic " + new String(tokenBase64);
 
 	}
